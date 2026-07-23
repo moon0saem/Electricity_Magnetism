@@ -5,10 +5,10 @@ import plotly.express as px
 # -----------------------------------------------------------------------------
 # 1. 페이지 설정 및 세션 상태 초기화
 # -----------------------------------------------------------------------------
-st.set_page_config(page_title="활동 2: 소비전력이 작다고 끝일까?", layout="wide")
+st.set_page_config(page_title="활동 2: 소비전력이 작다고 방심은 금물!", layout="wide")
 
-st.title("⚡ 활동 2. 소비전력이 작다고 끝일까?")
-st.subheader("― 고심이네 집 사건 발생: 순위가 뒤바뀐 전기에너지 사용량")
+st.title("⚡ 활동 3. 소비전력이 작다고 방심은 금물!")
+st.subheader("믿었던 TV의 배신...")
 
 # 세션 상태 관리
 if "activity2_submitted" not in st.session_state:
@@ -23,11 +23,11 @@ if "activity2_reflection" not in st.session_state:
 st.error("""
 📢 **[고심이네 집 사건 발생!]**
 
- "소비전력($W$)이 제일 큰 헤어드라이어($1300W$) 대신, 소비전력이 작은 게이밍 노트북($150W$)과 선풍기($50W$)를 마음껏 켰는데...
+ "TV는 소비전력이 엄청 작은 제품이었는데...
 
-한 달 뒤 스마트 홈 앱의 **[가전별 전기에너지 소비 리포트]**를 보니 **게이밍 노트북과 선풍기가 쓴 전기에너지가 헤어드라이어보다 2배 넘게 나왔어요!** 
+한 달 뒤 스마트 홈 앱의 **[가전별 전기에너지 소비 리포트]**를 보니 **TV로 쓴 전기에너지량이 엄청나네요.** 
 
-소비전력이 작은 가전인데, 대체 왜 이런 일이 일어났을까요?"
+대체 왜 이런 일이 일어났을까요?"
 """)
 
 st.markdown("---")
@@ -36,39 +36,40 @@ st.markdown("---")
 # 3. Step 1: 사용 시간 조작 및 데이터 연산
 # -----------------------------------------------------------------------------
 st.markdown("### ⏱️ Step 1: 고심이네 집 가전제품 사용 시간 조작하기")
-st.caption("슬라이더를 조작하여 각 가전제품의 하루 평균 사용 시간을 설정해 봅시다.")
+st.caption("슬라이더를 조작하여 각 가전제품의 하루 평균 사용 시간을 설정해보고, 어떤 결과가 나타나는지 확인해봅시다.")
 
 col_in1, col_in2, col_in3, col_in4 = st.columns(4)
 
 with col_in1:
     st.markdown("#### 💨 헤어드라이어")
-    st.caption("소비전력: **1,300 W** (매우 큼)")
+    st.caption("소비전력: **1,300 W**")
     dryer_min = st.slider("하루 사용 시간 (분)", min_value=0, max_value=60, value=10, step=5, key="act2_dryer_min")
     dryer_hr = dryer_min / 60.0
 
 with col_in2:
-    st.markdown("#### 📺 게이밍 노트북")
-    st.caption("소비전력: **150 W** (작음)")
-    nt_hr = st.slider("하루 사용 시간 (시간)", min_value=0.0, max_value=12.0, value=4.0, step=0.5, key="act2_nt_hr")
+    st.markdown("#### 📺 TV")
+    st.caption("소비전력: **150 W**")
+    tv_hr = st.slider("하루 사용 시간 (시간)", min_value=0.0, max_value=12.0, value=4.0, step=0.5, key="act2_tv_hr")
+
 with col_in3:
     st.markdown("#### 🌀 선풍기")
-    st.caption("소비전력: **50 W** (매우 작음)")
+    st.caption("소비전력: **50 W**")
     fan_hr = st.slider("하루 사용 시간 (시간)", min_value=0.0, max_value=24.0, value=10.0, step=1.0, key="act2_fan_hr")
 with col_in4:
     st.markdown("#### 🌀 폰 충전기")
-    st.caption("소비전력: **25 W** (매우 작음)")
+    st.caption("소비전력: **25 W**")
     charger_hr = st.slider("하루 사용 시간 (시간)", min_value=0.0, max_value=24.0, value=10.0, step=1.0, key="act2_charger_hr")
 # 🔬 전기에너지 연산 (kWh) = (W * h * 30일) / 1000
 dryer_kwh = (1300 * dryer_hr * 30) / 1000.0
-nt_kwh = (150 * nt_hr * 30) / 1000.0
+tv_kwh = (150 * tv_hr * 30) / 1000.0
 fan_kwh = (50 * fan_hr * 30) / 1000.0
 charger_kwh = (25 * charger_hr * 30) / 1000.0
 
 act2_df = pd.DataFrame({
-    "가전제품": ["헤어드라이어", "게이밍 노트북", "선풍기", "폰 충전기"],
+    "가전제품": ["헤어드라이어", "TV", "선풍기", "폰 충전기"],
     "소비전력(W)": [1300, 150, 50, 25],
-    "하루 사용시간(시간)": [round(dryer_hr, 2), nt_hr, fan_hr, charger_hr],
-    "월간 전기에너지(kWh)": [round(dryer_kwh, 2), round(nt_kwh, 2), round(fan_kwh, 2), round(charger_kwh, 2)]
+    "하루 사용시간(시간)": [round(dryer_hr, 2), tv_hr, fan_hr, charger_hr],
+    "월간 전기에너지(kWh)": [round(dryer_kwh, 2), round(tv_kwh, 2), round(fan_kwh, 2), round(charger_kwh, 2)]
 })
 
 st.markdown("---")
@@ -82,7 +83,7 @@ col_chart1, col_chart2 = st.columns(2)
 
 color_map = {
     "헤어드라이어": "#FF4B4B", # 빨강 (단시간 고소비)
-    "게이밍 노트북": "#1C83E1",       # 파랑 (장시간 중소비)
+    "TV": "#1C83E1",       # 파랑 (장시간 중소비)
     "선풍기": "#6BCB77",        # 초록 (장시간 저소비)
     "폰 충전기": "#FFD700"       # 노랑 (장시간 극저소비)
 }

@@ -6,10 +6,9 @@ import plotly.graph_objects as go
 # -----------------------------------------------------------------------------
 # 1. 페이지 및 기본 설정
 # -----------------------------------------------------------------------------
-st.set_page_config(page_title="활동 3: 나만의 탄소 다이어트 시뮬레이션", layout="wide")
+st.set_page_config(page_title="활동 3: 나의 에너지 다이어트 계획 세우기", layout="wide")
 
-st.title("🍃 활동 3. 나만의 탄소 다이어트 시뮬레이션")
-st.subheader("― 데이터로 증명하는 나의 생태전환 행동 선언")
+st.title("🍃 활동 3. 나의 에너지 다이어트 계획 세우기")
 
 st.markdown("""
 ### 📖 활동 소개
@@ -196,11 +195,16 @@ with col_c1:
 
 with col_c2:
     st.markdown("#### 🔬 적용된 과학 원리")
-    st.info(f"""
-    * **에어컨:** 온도차($\\Delta T$)가 **{dT_ac_before}^\circ\\text{{C}} \\rightarrow {dT_ac_after}^\circ\\text{{C}}**로 줄어 소비전력 약 **{((ac_power_base - ac_power_after)/ac_power_base)*100:.1f}%** 절감!
-    * **냉장고:** 문 열기 횟수 단축으로 유입 열량($Q=mc\\Delta T$) 감소!
-    * **대기전력:** 미세 누설전류($I$) 차단으로 **{total_standby_w_before:.1f}W** 완전 차단!
-    """)
+    
+    # 💡 [추가 위치] 냉장고 감축량 및 금액 데이터 계산
+    ref_kwh_saved = ref_kwh_before - ref_kwh_after
+    ref_cost_saved = ref_kwh_saved * COST_PER_KWH
+    
+    st.info(
+        f"* **에어컨:** 온도차(ΔT)가 **{dT_ac_before}°C → {dT_ac_after}°C**로 줄어 소비전력 약 **{((ac_power_base - ac_power_after)/ac_power_base)*100:.1f}%** 절감!\n"
+        f"* **냉장고:** 문 여는 횟수를 **{door_open_before}회 → {m2_door_open}회**로 줄여 월간 전기에너지 **약 {ref_kwh_saved:.2f} kWh** ({int(ref_cost_saved):,}원) 절감! (열 유입 차단으로 모터 고전력 가동 시간 단축)\n"
+        f"* **대기전력:** 미세 누설전류 차단으로 **{total_standby_w_before:.1f}W** 완전 차단!"
+    )
 
 st.markdown("---")
 
@@ -212,7 +216,6 @@ st.markdown("### 📝 Step 4: 나의 데이터 기반 생태전환 행동 선언
 st.markdown("""
 시뮬레이션 결과를 바탕으로, 내가 오늘 당장 돈을 들이지 않고 실천할 **데이터 기반 생태전환 다짐**을 작성해 보세요.
 """)
-
 
 action_plan = st.text_area(
     "나의 실천 다짐 및 시뮬레이션 소감:",
