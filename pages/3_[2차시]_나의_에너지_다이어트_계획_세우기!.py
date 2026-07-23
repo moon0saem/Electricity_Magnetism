@@ -213,24 +213,9 @@ st.markdown("""
 시뮬레이션 결과를 바탕으로, 내가 오늘 당장 돈을 들이지 않고 실천할 **데이터 기반 생태전환 다짐**을 작성해 보세요.
 """)
 
-student_name = st.text_input("작성자 이름:", placeholder="예: 홍길동")
+
 action_plan = st.text_area(
     "나의 실천 다짐 및 시뮬레이션 소감:",
     height=150,
     placeholder=f"예: 시뮬레이션을 돌려보니 에어컨 온도를 26도로 높이고 자는 동안 셋톱박스 플러그를 뽑는 것만으로도 월간 탄소를 {co2_saved:.1f}kg이나 줄일 수 있음을 알게 되었습니다. 오늘부터..."
 )
-
-if st.button("💾 생태전환 행동 선언문 저장 및 제출", type="primary", use_container_width=True):
-    if student_name and action_plan:
-        st.success(f"🎉 {student_name} 학생의 생태전환 행동 선언문이 성공적으로 저장되었습니다!")
-        st.balloons()
-        
-        # 포트폴리오 요약 출력
-        st.markdown(f"""
-        > 📜 **[{student_name} 학생의 디지털 리포트 카드]**
-        > * **월간 탄소 감축량:** {co2_saved:.1f} kgCO₂ (감축률 {reduction_rate:.1f}%)
-        > * **소나무 심기 환산 효과:** 연간 {trees_planted:.1f} 그루
-        > * **나의 실천 약속:** {action_plan}
-        """)
-    else:
-        st.warning("⚠️ 이름과 실천 다짐을 모두 작성해 주세요.")
