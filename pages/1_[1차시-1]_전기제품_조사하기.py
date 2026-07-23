@@ -432,93 +432,89 @@ if st.session_state.data_submitted and st.session_state.analysis_submitted:
             else:
                 st.info(st.session_state.kettle_choice_feedback_message)
 
-st.markdown("#### [정리] 오늘 수업 내용 요약하기")
+    st.markdown("#### [정리] 오늘 수업 내용 요약하기")
 
-        qa_cols = [0.4, 4.2, 0.5, 1.3]
+    qa_cols = [0.4, 4.2, 0.5, 1.3]
 
-        q1_col1, q1_col2, q1_col3, q1_col4 = st.columns(qa_cols, gap="small")
-        with q1_col1:
-            st.markdown("<p style='margin-top: 0.55rem;'>1.</p>", unsafe_allow_html=True)
-        with q1_col2:
-            st.markdown("<p style='margin-top: 0.55rem;'>1초 동안 사용하는 전기 에너지의 양은?</p>", unsafe_allow_html=True)
-        with q1_col3:
-            st.markdown("<p style='margin-top: 0.55rem; text-align:right;'>답:</p>", unsafe_allow_html=True)
-        with q1_col4:
-            lesson1_blank = st.text_input(
-                "1번 빈칸",
-                value=st.session_state.get("kettle_lesson1_blank", ""),
-                placeholder="소비전력",
-                key="kettle_lesson1_blank_input",
-                label_visibility="collapsed",
-            )
-            st.session_state.kettle_lesson1_blank = lesson1_blank
+    q1_col1, q1_col2, q1_col3, q1_col4 = st.columns(qa_cols, gap="small")
+    with q1_col1:
+        st.markdown("<p style='margin-top: 0.55rem;'>1.</p>", unsafe_allow_html=True)
+    with q1_col2:
+        st.markdown("<p style='margin-top: 0.55rem;'>1초 동안 사용하는 전기 에너지의 양은?</p>", unsafe_allow_html=True)
+    with q1_col3:
+        st.markdown("<p style='margin-top: 0.55rem; text-align:right;'>답:</p>", unsafe_allow_html=True)
+    with q1_col4:
+        lesson1_blank = st.text_input(
+            "1번 빈칸",
+            value=st.session_state.get("kettle_lesson1_blank", ""),
+            key="kettle_lesson1_blank_input",
+            label_visibility="collapsed",
+        )
+        st.session_state.kettle_lesson1_blank = lesson1_blank
 
-        q2_col1, q2_col2, q2_col3, q2_col4 = st.columns(qa_cols, gap="small")
-        with q2_col1:
-            st.markdown("<p style='margin-top: 0.55rem;'>2.</p>", unsafe_allow_html=True)
-        with q2_col2:
-            st.markdown("<p style='margin-top: 0.55rem;'>소비 전력이 큰 전기 기구는 전기 에너지를 주로 어떤 에너지로 전환하여 사용하는가?</p>", unsafe_allow_html=True)
-        with q2_col3:
-            st.markdown("<p style='margin-top: 0.55rem; text-align:right;'>답:</p>", unsafe_allow_html=True)
-        with q2_col4:
-            lesson2_blank = st.text_input(
-                "2번 빈칸",
-                value=st.session_state.get("kettle_lesson2_blank", ""),
-                placeholder="열 또는 열에너지",
-                key="kettle_lesson2_blank_input",
-                label_visibility="collapsed",
-            )
-            st.session_state.kettle_lesson2_blank = lesson2_blank
+    q2_col1, q2_col2, q2_col3, q2_col4 = st.columns(qa_cols, gap="small")
+    with q2_col1:
+        st.markdown("<p style='margin-top: 0.55rem;'>2.</p>", unsafe_allow_html=True)
+    with q2_col2:
+        st.markdown("<p style='margin-top: 0.55rem;'>소비 전력이 큰 전기 기구는 전기 에너지를 주로 어떤 에너지로 전환하여 사용하는가?</p>", unsafe_allow_html=True)
+    with q2_col3:
+        st.markdown("<p style='margin-top: 0.55rem; text-align:right;'>답:</p>", unsafe_allow_html=True)
+    with q2_col4:
+        lesson2_blank = st.text_input(
+            "2번 빈칸",
+            value=st.session_state.get("kettle_lesson2_blank", ""),
+            key="kettle_lesson2_blank_input",
+            label_visibility="collapsed",
+        )
+        st.session_state.kettle_lesson2_blank = lesson2_blank
 
-        q3_col1, q3_col2, q3_col3, q3_col4, q3_col5, q3_col6 = st.columns([0.4, 1.8, 1.0, 0.3, 0.8, 2.5], gap="small")
-        with q3_col1:
-            st.markdown("<p style='margin-top: 0.55rem;'>3.</p>", unsafe_allow_html=True)
-        with q3_col2:
-            st.markdown("<p style='margin-top: 0.55rem;'>성능이 동일하다면</p>", unsafe_allow_html=True)
-        with q3_col3:
-            lesson3_blank_one = st.text_input(
-                "3번 첫 빈칸",
-                value=st.session_state.get("kettle_lesson3_blank_one", ""),
-                placeholder="소비전력",
-                key="kettle_lesson3_blank_one_input",
-                label_visibility="collapsed",
-            )
-            st.session_state.kettle_lesson3_blank_one = lesson3_blank_one
-        with q3_col4:
-            st.markdown("<p style='margin-top: 0.55rem; text-align:center;'>이</p>", unsafe_allow_html=True)
-        with q3_col5:
-            lesson3_blank_two = st.text_input(
-                "3번 둘째 빈칸",
-                value=st.session_state.get("kettle_lesson3_blank_two", ""),
-                placeholder="작은",
-                key="kettle_lesson3_blank_two_input",
-                label_visibility="collapsed",
-            )
-            st.session_state.kettle_lesson3_blank_two = lesson3_blank_two
-        with q3_col6:
-            st.markdown("<p style='margin-top: 0.55rem;'>제품을 사용하는 것이 더 효율적이다.</p>", unsafe_allow_html=True)
+    q3_col1, q3_col2, q3_col3, q3_col4, q3_col5, q3_col6 = st.columns([0.4, 1.8, 1.0, 0.3, 0.8, 2.5], gap="small")
+    with q3_col1:
+        st.markdown("<p style='margin-top: 0.55rem;'>3.</p>", unsafe_allow_html=True)
+    with q3_col2:
+        st.markdown("<p style='margin-top: 0.55rem;'>성능이 동일하다면</p>", unsafe_allow_html=True)
+    with q3_col3:
+        lesson3_blank_one = st.text_input(
+            "3번 첫 빈칸",
+            value=st.session_state.get("kettle_lesson3_blank_one", ""),
+            key="kettle_lesson3_blank_one_input",
+            label_visibility="collapsed",
+        )
+        st.session_state.kettle_lesson3_blank_one = lesson3_blank_one
+    with q3_col4:
+        st.markdown("<p style='margin-top: 0.55rem; text-align:center;'>이</p>", unsafe_allow_html=True)
+    with q3_col5:
+        lesson3_blank_two = st.text_input(
+            "3번 둘째 빈칸",
+            value=st.session_state.get("kettle_lesson3_blank_two", ""),
+            key="kettle_lesson3_blank_two_input",
+            label_visibility="collapsed",
+        )
+        st.session_state.kettle_lesson3_blank_two = lesson3_blank_two
+    with q3_col6:
+        st.markdown("<p style='margin-top: 0.55rem;'>제품을 사용하는 것이 더 효율적이다.</p>", unsafe_allow_html=True)
 
-        if st.button("✅ 정답 확인", key="kettle_lesson_check_submit", use_container_width=False):
-            # 띄어쓰기 제거 후 유연한 정답 판정
-            q1_ans = lesson1_blank.replace(" ", "")
-            q2_ans = lesson2_blank.replace(" ", "")
-            q3_ans1 = lesson3_blank_one.replace(" ", "")
-            q3_ans2 = lesson3_blank_two.replace(" ", "")
+    if st.button("✅ 정답 확인", key="kettle_lesson_check_submit", use_container_width=False):
+        # 띄어쓰기 제거 후 유연한 정답 판정
+        q1_ans = lesson1_blank.replace(" ", "")
+        q2_ans = lesson2_blank.replace(" ", "")
+        q3_ans1 = lesson3_blank_one.replace(" ", "")
+        q3_ans2 = lesson3_blank_two.replace(" ", "")
 
-            q1_correct = q1_ans in ["소비전력", "소비전력량"]
-            q2_correct = q2_ans in ["열", "열에너지"]
-            q3_correct = (q3_ans1 in ["소비전력", "소비전력량"]) and (q3_ans2 in ["작은", "적은", "낮은"])
+        q1_correct = q1_ans in ["소비전력", "소비 전력"]
+        q2_correct = q2_ans in ["열", "열에너지", "열 에너지"]
+        q3_correct = (q3_ans1 in ["소비전력", "소비 전력"]) and (q3_ans2 in ["작은", "적은", "낮은"])
 
-            if q1_correct and q2_correct and q3_correct:
-                st.success("🎉 축하합니다! 모든 빈칸을 정확하게 채웠습니다!")
-                st.balloons()
-            else:
-                st.warning("⚠️ 틀린 부분이 있습니다. 다시 확인해보세요!")
-                if not q1_correct:
-                    st.info("1번 문제를 다시 확인해보세요.")
-                if not q2_correct:
-                    st.info("2번 문제를 다시 확인해보세요.")
-                if not q3_correct:
-                    st.info("3번 문제를 다시 확인해보세요.")
+        if q1_correct and q2_correct and q3_correct:
+            st.success("🎉 축하합니다! 모든 빈칸을 정확하게 채웠습니다!")
+            st.balloons()
+        else:
+            st.warning("⚠️ 틀린 부분이 있습니다. 다시 확인해보세요!")
+            if not q1_correct:
+                st.info("1번 문제를 다시 확인해보세요.")
+            if not q2_correct:
+                st.info("2번 문제를 다시 확인해보세요.")
+            if not q3_correct:
+                st.info("3번 문제를 다시 확인해보세요.")
 
-st.markdown("---")
+    st.markdown("---")
