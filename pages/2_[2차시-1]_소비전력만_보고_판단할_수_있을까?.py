@@ -27,7 +27,7 @@ st.markdown("""
 전기다리미는 소비전력이 매우 큰 편이었어요.  
  그런데 스마트 홈 앱의 [가전별 전기에너지 소비 리포트]를 보니 **실제로 전기 다리미로 쓴 전기에너지량의 비중이 생각보다 크지 않은데요?**  
 """)
-
+st.image("data/report.png")
 st.markdown("""
 - 왜 그럴까요? 이유를 예상하여 적어봅시다.
 """)
@@ -64,7 +64,7 @@ col_in1, col_in2, col_in3, col_in4 = st.columns(4)
 with col_in1:
     st.markdown("#### ♨️ 전기다리미")
     st.caption("소비전력: **2,000 W**")
-    dryer_min = st.slider("일주일 사용 시간 (분)", min_value=0, max_value=60, value=10, step=5, key="act2_dryer_min")
+    dryer_min = st.slider("일주일 사용 시간 (분)", min_value=0, max_value=120, value=10, step=5, key="act2_dryer_min")
     dryer_hr = dryer_min / 60.0
 
 with col_in2:
@@ -98,7 +98,7 @@ st.markdown("---")
 # -----------------------------------------------------------------------------
 # 4. Step 2: 반전 그래프 시각화 비교
 # -----------------------------------------------------------------------------
-st.markdown("#### 📊 Step 2: 소비전력(W) vs 월간 전기에너지(kWh)")
+st.markdown("#### 📊 Step 2: 소비전력 vs 전기에너지 사용량")
 
 col_chart1, col_chart2 = st.columns(2)
 
@@ -131,7 +131,7 @@ with col_chart2:
         color="가전제품",
         color_discrete_map=color_map,
         text="월간 전기에너지(kWh)",
-        title="<b>[차트 B] 실제 사용 시간(h)을 반영한 월간 전기에너지(kWh)</b>"
+        title="<b>[차트 B] 실제 사용 시간(h)을 반영한 월간 전기에너지 사용량(kWh)</b>"
     )
     fig_kwh.update_traces(texttemplate='%{text:.2f} kWh', textposition='outside')
     fig_kwh.update_layout(height=400, showlegend=False)
