@@ -130,7 +130,7 @@ STANDBY_W_DICT = {"셋톱박스 (12.3W)": 12.3, "전자레인지 (2.2W)": 2.2, "
 
 # 냉장고 열유입 연산 (Q = V * rho * cp * dT / COP)
 dT_ref = max(1, room_temp - 4)
-wh_per_open = (0.5 * 0.6 * 1.205 * 1005 * dT_ref / 2.0) / 3600.0
+wh_per_open = (0.5 * 0.2 * 1.205 * 1005 * dT_ref / 2.0) / 3600.0
 ref_wh_base = REF_GRADE_WH.get(ref_grade, 20.7)
 ref_kwh_before = ((ref_wh_base * 24 * 30) + (wh_per_open * door_open_before * 30)) / 1000.0
 
@@ -140,7 +140,7 @@ ac_power_base = 1800  # 스탠드 에어컨 기준
 ac_kwh_before = (ac_power_base * ac_hours_before * 30) / 1000.0
 
 # PC 및 드라이어 연산
-pc_kwh_before = (250 * pc_hours_before * 30) / 1000.0
+pc_kwh_before = (150 * pc_hours_before * 30) / 1000.0
 dryer_kwh_before = (1600 * (dryer_min_before / 60.0) * 30) / 1000.0
 
 # 대기전력 연산 (P = V * I)
@@ -205,7 +205,7 @@ ac_power_after = ac_power_base * (dT_ac_after / dT_ac_before)
 ac_kwh_after = (ac_power_after * m1_ac_hours * 30) / 1000.0
 
 # PC 및 드라이어 After
-pc_kwh_after = (250 * m3_pc_hours * 30) / 1000.0
+pc_kwh_after = (150 * m3_pc_hours * 30) / 1000.0
 dryer_kwh_after = dryer_kwh_before
 
 # 대기전력 After
@@ -231,11 +231,11 @@ st.markdown("---")
 st.markdown("#### 📊 Step 3: 시뮬레이션 결과 및 환경 환산 리포트")
 
 r1, r2, r3, r4 = st.columns(4)
-r1.metric("🟢 다이어트 후 탄소 배출량", f"{total_co2_after:.1f} kgCO₂", f"-{co2_saved:.1f} kgCO₂")
+r1, r2, r3, r4 = st.columns(4)
+r1.metric("🟢 다이어트 후 탄소 배출량(/월)", f"{total_co2_after:.1f} kgCO₂", f"-{co2_saved:.1f} kgCO₂")
 r2.metric("📉 탄소 감축률", f"{reduction_rate:.1f} %")
 r3.metric("💰 월간 절약 전기요금", f"{int(cost_saved):,} 원")
-r4.metric("🌳 연간 소나무 심기 효과", f"{trees_planted:.1f} 그루")
-
+r4.metric("🌳 연간 환산 소나무 효과", f"{trees_planted:.1f} 그루", help="현재의 월간 감축량을 1년간 유지할 때 심는 소나무 효과입니다.")
 # Before vs After 비교 차트
 col_c1, col_c2 = st.columns([2, 1])
 
@@ -268,7 +268,7 @@ with col_c2:
     
     st.info(
         f"* **에어컨:** 온도차(ΔT)가 **{dT_ac_before}°C → {dT_ac_after}°C**로 줄어 소비전력 약 **{((ac_power_base - ac_power_after)/ac_power_base)*100:.1f}%** 절감!\n"
-        f"* **냉장고:** 문 여는 횟수를 **{door_open_before}회 → {m2_door_open}회**로 줄여 월간 전기에너지 **약 {ref_kwh_saved:.2f} kWh** ({int(ref_cost_saved):,}원) 절감!\n"
+        f"* **냉장고:** 문 여는 횟수를 **{door_open_before}회 → {m2_door_open}회**로 줄여 월간 전기에너지 **약 {ref_kwh_saved:.2f} kWh** 절감!\n"
         f"* **대기전력:** 미세 누설전류 차단으로 **{total_standby_w_before:.1f}W** 완전 차단!"
     )
 
