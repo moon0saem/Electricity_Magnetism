@@ -309,5 +309,5 @@ if st.button("✅ 다짐 완료", type="primary", use_container_width=True):
             "action_plan": action_plan,
         }
         st.session_state["report_pdf"] = _build_report_pdf(report_data)
-        st.success("작성이 완료되었습니다. 학습지를 PDF로 저장하여 제출하세요.")
+        st.success("작성이 완료되었습니다! 학습지를 PDF로 저장하여 제출하세요.")
         st.balloons()
