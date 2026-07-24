@@ -18,7 +18,10 @@ st.markdown("""
 고심이네 집의 전기 기구들을 잘 살펴보고, 정리하여 어떤 특징이 있는지 알아봅시다.
 """)
 
-st.image("data/home.png", use_container_width=True)
+home_image_path = Path("data/home.webp")
+if not home_image_path.exists():
+    home_image_path = Path("data/home.png")
+st.image(str(home_image_path), use_container_width=True)
 
 st.markdown("---")
 
@@ -44,6 +47,50 @@ if "analysis_submitted" not in st.session_state:
 
 appliance_options = ["TV", "세탁기", "선풍기", "전기 밥솥", "전기 다리미", "전등", "청소기"]
 energy_options = ["운동 에너지", "열에너지", "빛에너지"]
+
+
+@st.cache_data(show_spinner=False)
+def build_appliance_power_fig(records):
+    df = pd.DataFrame(records)
+    energy_colors = {
+        "열에너지": "#FF6B6B",
+        "빛에너지": "#FFD93D",
+        "운동 에너지": "#6BCB77",
+    }
+
+    fig = go.Figure()
+    for energy_type in df["전환되는 에너지"].unique():
+        energy_data = df[df["전환되는 에너지"] == energy_type]
+        color = energy_colors.get(energy_type, "#95A5A6")
+
+        fig.add_trace(
+            go.Bar(
+                x=energy_data["전기 기구 종류"],
+                y=energy_data["소비전력(W)"],
+                name=energy_type,
+                marker_color=color,
+                text=energy_data["소비전력(W)"],
+                textposition="auto",
+            )
+        )
+
+    fig.update_layout(
+        xaxis_title="전기 기구",
+        yaxis_title="소비전력 (W)",
+        barmode="group",
+        hovermode="x unified",
+        height=400,
+        showlegend=True,
+        legend=dict(
+            title="전환되는 에너지",
+            orientation="v",
+            yanchor="top",
+            y=0.99,
+            xanchor="left",
+            x=0.01,
+        ),
+    )
+    return fig.to_dict()
 
 if "appliance_rows" not in st.session_state:
     initial_rows = []
@@ -148,7 +195,6 @@ st.session_state.appliance_rows = updated_rows
 
 if remove_idx is not None:
     st.session_state.appliance_rows.pop(remove_idx)
-    st.rerun()
 
 add_col, submit_col, spacer_col = st.columns([1, 1, 4])
 with add_col:
@@ -156,7 +202,6 @@ with add_col:
         st.session_state.appliance_rows.append(
             {"전기 기구 종류": "", "전환되는 에너지": "", "소비전력(W)": 0}
         )
-        st.rerun()
 
 edited_df = pd.DataFrame(st.session_state.appliance_rows)
 
@@ -184,46 +229,10 @@ st.markdown("---")
 if st.session_state.data_submitted and len(st.session_state.appliance_data) > 0:
     st.markdown("### 📊 Step 2: 제품별 소비전력 비교하기")
 
-    energy_colors = {
-        "열에너지": "#FF6B6B",
-        "빛에너지": "#FFD93D",
-        "운동 에너지": "#6BCB77",
-    }
-
-    df = st.session_state.appliance_data.copy()
-    fig = go.Figure()
-
-    for energy_type in df["전환되는 에너지"].unique():
-        energy_data = df[df["전환되는 에너지"] == energy_type]
-        color = energy_colors.get(energy_type, "#95A5A6")
-
-        fig.add_trace(go.Bar(
-            x=energy_data["전기 기구 종류"],
-            y=energy_data["소비전력(W)"],
-            name=energy_type,
-            marker_color=color,
-            text=energy_data["소비전력(W)"],
-            textposition="auto",
-        ))
-
-    fig.update_layout(
-        xaxis_title="전기 기구",
-        yaxis_title="소비전력 (W)",
-        barmode="group",
-        hovermode="x unified",
-        height=400,
-        showlegend=True,
-        legend=dict(
-            title="전환되는 에너지",
-            orientation="v",
-            yanchor="top",
-            y=0.99,
-            xanchor="left",
-            x=0.01
-        )
+    appliance_fig_dict = build_appliance_power_fig(
+        st.session_state.appliance_data.to_dict("records")
     )
-
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(go.Figure(appliance_fig_dict), use_container_width=True)
     st.markdown("---")
 
 # 분석 결과 입력 섹션
@@ -235,31 +244,38 @@ if st.session_state.data_submitted:
     - 소비전력이 가장 큰 제품은 누구인가요?
     """)
     
-    analysis_text = st.text_area(
-        "분석 결과 작성",
-        value=st.session_state.analysis_result,
-        height=50,
-        placeholder="여기에 분석 결과를 작성해주세요...",
-        key="analysis_input",
-        label_visibility="collapsed",
-    )
+    with st.form("analysis_form"):
+        analysis_text = st.text_area(
+            "분석 결과 작성",
+            value=st.session_state.analysis_result,
+            height=50,
+            placeholder="여기에 분석 결과를 작성해주세요...",
+            key="analysis_input",
+            label_visibility="collapsed",
+        )
 
-    st.markdown("""
-    - 전환되는 에너지 종류가 무엇이냐에 따라 소비전력에 어떤 특징이 있나요?
-    """)
-        
-    analysis_text2 = st.text_area(
-        "분석 결과 작성",
-        value=st.session_state.get("analysis_result2", ""),
-        height=100,
-        placeholder="여기에 분석 결과를 작성해주세요...",
-        key="analysis_input2",
-        label_visibility="collapsed",
-    )
+        st.markdown("""
+        - 전환되는 에너지 종류가 무엇이냐에 따라 소비전력에 어떤 특징이 있나요?
+        """)
+
+        analysis_text2 = st.text_area(
+            "분석 결과 작성",
+            value=st.session_state.get("analysis_result2", ""),
+            height=100,
+            placeholder="여기에 분석 결과를 작성해주세요...",
+            key="analysis_input2",
+            label_visibility="collapsed",
+        )
+
+        analysis_submitted = st.form_submit_button(
+            "✅ 작성 완료",
+            use_container_width=True,
+        )
+
     st.session_state.analysis_result = analysis_text
     st.session_state.analysis_result2 = analysis_text2
 
-    if st.button("✅ 작성 완료", key="analysis_submit_button", use_container_width=True):
+    if analysis_submitted:
         if analysis_text.strip() and analysis_text2.strip():
             st.session_state.analysis_submitted = True
             st.success("잘 분석해주었습니다! 이제 아래 활동 2를 진행해 보세요.")
@@ -294,7 +310,10 @@ st.markdown(
 고심이의 조건에 맞는 최적의 제품을 데이터에 기반하여 선택해 봅시다.
 """
 )
-st.image("data/mart.png", use_container_width=True)
+mart_image_path = Path("data/mart.webp")
+if not mart_image_path.exists():
+    mart_image_path = Path("data/mart.png")
+st.image(str(mart_image_path), use_container_width=True)
 
 # -------------------------------------------------------------------------
 # 0. 사전 데이터 탐구: 실제 수집 데이터(kettles.csv) 연동 분석
@@ -319,7 +338,44 @@ def load_kettles_csv():
 
 df_30, is_csv_loaded = load_kettles_csv()
 
+
+@st.cache_data(show_spinner=False)
+def build_kettle_hist_fig(records):
+    df = pd.DataFrame(records)
+    fig_hist = px.histogram(
+        df,
+        x="소비전력(W)",
+        nbins=10,
+        title="<b>소비전력(W)에 따른 제품 수 분포</b>",
+        color_discrete_sequence=["#3B82F6"],
+        labels={"count": "제품 수", "소비전력(W)": "소비전력 (W)"},
+    )
+    fig_hist.update_layout(
+        height=320,
+        yaxis_title="제품 수 (개)",
+        xaxis_title="소비전력 (W)",
+        bargap=0.1,
+    )
+    return fig_hist.to_dict()
+
+
+@st.cache_data(show_spinner=False)
+def build_kettle_scatter_fig(records):
+    df = pd.DataFrame(records)
+    fig_scatter = px.scatter(
+        df,
+        x="용량(L)",
+        y="소비전력(W)",
+        hover_name="제품" if "제품" in df.columns else None,
+        title="<b>용량(L)에 따른 소비전력(W) 산점도</b>",
+        color_discrete_sequence=["#EF4444"],
+        size_max=10,
+    )
+    fig_scatter.update_layout(height=320)
+    return fig_scatter.to_dict()
+
 if is_csv_loaded and df_30 is not None:
+    kettle_records = df_30.to_dict("records")
     # 데이터 시각화 탭 (히스토그램 vs 산점도 vs 원본 데이터)
     tab_hist, tab_scatter, tab_raw = st.tabs(
         [
@@ -330,34 +386,16 @@ if is_csv_loaded and df_30 is not None:
     )
 
     with tab_hist:
-        fig_hist = px.histogram(
-            df_30,
-            x="소비전력(W)",
-            nbins=10,
-            title="<b>소비전력(W)에 따른 제품 수 분포</b>",
-            color_discrete_sequence=["#3B82F6"],
-            labels={"count": "제품 수", "소비전력(W)": "소비전력 (W)"},
+        st.plotly_chart(
+            go.Figure(build_kettle_hist_fig(kettle_records)),
+            use_container_width=True,
         )
-        fig_hist.update_layout(
-            height=320,
-            yaxis_title="제품 수 (개)",
-            xaxis_title="소비전력 (W)",
-            bargap=0.1,
-        )
-        st.plotly_chart(fig_hist, use_container_width=True)
 
     with tab_scatter:
-        fig_scatter = px.scatter(
-            df_30,
-            x="용량(L)",
-            y="소비전력(W)",
-            hover_name="제품" if "제품" in df_30.columns else None,
-            title="<b>용량(L)에 따른 소비전력(W) 산점도</b>",
-            color_discrete_sequence=["#EF4444"],
-            size_max=10,
+        st.plotly_chart(
+            go.Figure(build_kettle_scatter_fig(kettle_records)),
+            use_container_width=True,
         )
-        fig_scatter.update_layout(height=320)
-        st.plotly_chart(fig_scatter, use_container_width=True)
 
     with tab_raw:
         st.dataframe(df_30, use_container_width=True, hide_index=True)
@@ -434,7 +472,10 @@ kettles_overview_path = (
     Path(__file__).resolve().parent.parent / "data" / "kettles.png"
 )
 
-def image_to_data_uri(image_path):
+@st.cache_data(show_spinner=False)
+def image_to_data_uri(image_path_str):
+    image_path = Path(image_path_str)
+
     if not image_path.exists():
         return None
 
@@ -444,8 +485,9 @@ def image_to_data_uri(image_path):
     mime_type = f"image/{'jpeg' if suffix in ['jpg', 'jpeg'] else suffix}"
     return f"data:{mime_type};base64,{encoded_image}"
 
-def render_kettle_card(title, color, image_path):
-    image_data_uri = image_to_data_uri(image_path)
+@st.cache_data(show_spinner=False)
+def render_kettle_card(title, color, image_path_str):
+    image_data_uri = image_to_data_uri(image_path_str)
     image_html = (
         f'<img src="{image_data_uri}" style="width:100%; height:220px;'
         ' object-fit:contain; display:block; margin:0 auto 14px auto;'
@@ -495,21 +537,24 @@ if "kettle_performance_result" not in st.session_state:
 control_col, result_col = st.columns([1, 1])
 
 with control_col:
-    water_amount = st.slider(
-        "끓일 물의 양(mL)",
-        min_value=100,
-        max_value=1000,
-        value=int(st.session_state.kettle_water_amount),
-        step=100,
-        key="kettle_water_amount_slider",
-    )
+    with st.form("kettle_performance_form"):
+        water_amount = st.slider(
+            "끓일 물의 양(mL)",
+            min_value=100,
+            max_value=1000,
+            value=int(st.session_state.kettle_water_amount),
+            step=100,
+            key="kettle_water_amount_slider",
+        )
+
+        kettle_perf_submitted = st.form_submit_button(
+            "✅ 입력 완료",
+            use_container_width=True,
+        )
+
     st.session_state.kettle_water_amount = water_amount
 
-    if st.button(
-        "✅ 입력 완료",
-        key="kettle_performance_submit",
-        use_container_width=True,
-    ):
+    if kettle_perf_submitted:
         st.session_state.kettle_boiling_started = True
         boiling_base = water_amount / 100
         st.session_state.kettle_performance_result = pd.DataFrame(
@@ -558,39 +603,41 @@ with result_col:
 with st.expander("🧩 주전자의 성능 비교하기", expanded=True):
     st.caption("Step 1 결과를 바탕으로 알파벳과 기호를 모두 입력하세요.")
 
-    (
-        relation_col1,
-        relation_col2,
-        relation_col3,
-        relation_col4,
-        relation_col5,
-    ) = st.columns([1, 1, 1, 1, 1])
-    with relation_col1:
-        relation_left = st.selectbox(
-            "주전자 종류", ["", "A", "B", "C"], key="kettle_relation_left"
-        )
-    with relation_col2:
-        relation_ac = st.selectbox(
-            "등호/부등호", ["", "=", ">", "<"], key="kettle_relation_ac"
-        )
-    with relation_col3:
-        relation_mid = st.selectbox(
-            "주전자 종류", ["", "A", "B", "C"], key="kettle_relation_mid"
-        )
-    with relation_col4:
-        relation_cb = st.selectbox(
-            "등호/부등호", ["", "=", ">", "<"], key="kettle_relation_cb"
-        )
-    with relation_col5:
-        relation_right = st.selectbox(
-            "주전자 종류", ["", "A", "B", "C"], key="kettle_relation_right"
+    with st.form("kettle_relation_form"):
+        (
+            relation_col1,
+            relation_col2,
+            relation_col3,
+            relation_col4,
+            relation_col5,
+        ) = st.columns([1, 1, 1, 1, 1])
+        with relation_col1:
+            relation_left = st.selectbox(
+                "주전자 종류", ["", "A", "B", "C"], key="kettle_relation_left"
+            )
+        with relation_col2:
+            relation_ac = st.selectbox(
+                "등호/부등호", ["", "=", ">", "<"], key="kettle_relation_ac"
+            )
+        with relation_col3:
+            relation_mid = st.selectbox(
+                "주전자 종류", ["", "A", "B", "C"], key="kettle_relation_mid"
+            )
+        with relation_col4:
+            relation_cb = st.selectbox(
+                "등호/부등호", ["", "=", ">", "<"], key="kettle_relation_cb"
+            )
+        with relation_col5:
+            relation_right = st.selectbox(
+                "주전자 종류", ["", "A", "B", "C"], key="kettle_relation_right"
+            )
+
+        relation_submitted = st.form_submit_button(
+            "✅ 성능 비교 확인",
+            use_container_width=True,
         )
 
-    if st.button(
-        "✅ 성능 비교 확인",
-        key="kettle_performance_relation_submit",
-        use_container_width=True,
-    ):
+    if relation_submitted:
         if (
             relation_left == "A"
             and relation_ac == "="
@@ -606,6 +653,24 @@ with st.expander("🧩 주전자의 성능 비교하기", expanded=True):
             and relation_mid == "A"
             and relation_cb == ">"
             and relation_right == "B"
+        ):
+            st.session_state.kettle_performance_relation_submitted = True
+            st.success("정답입니다. Step 2를 진행해 보세요.")
+        elif (
+            relation_left == "B"
+            and relation_ac == "<"
+            and relation_mid == "A"
+            and relation_cb == "="
+            and relation_right == "C"
+        ):
+            st.session_state.kettle_performance_relation_submitted = True
+            st.success("정답입니다. Step 2를 진행해 보세요.")
+        elif (
+            relation_left == "B"
+            and relation_ac == "<"
+            and relation_mid == "C"
+            and relation_cb == "="
+            and relation_right == "A"
         ):
             st.session_state.kettle_performance_relation_submitted = True
             st.success("정답입니다. Step 2를 진행해 보세요.")
@@ -644,9 +709,11 @@ if st.session_state.kettle_performance_relation_submitted:
             "전기 주전자 C",
             "#d97706",
             kettle_image_paths[2],
-            900,
+            1300,
         ),
     ]
+
+    revealed_set = set(st.session_state.kettle_power_revealed)
 
     for col, product, title, color, image_path, power in step2_kettle_cards:
         with col:
@@ -654,26 +721,31 @@ if st.session_state.kettle_performance_relation_submitted:
                 render_kettle_card(
                     title=title,
                     color=color,
-                    image_path=image_path,
+                    image_path_str=str(image_path),
                 ),
                 unsafe_allow_html=True,
             )
 
-            if product in st.session_state.kettle_power_revealed:
-                st.info(f"소비전력: {power}W")
+            # 버튼 영역과 결과 영역을 같은 슬롯에 렌더링하여 위치가 흔들리지 않게 한다.
+            power_slot = st.empty()
+            is_revealed = product in revealed_set
+            if is_revealed:
+                power_slot.info(f"소비전력: {power}W")
             else:
-                if st.button(
+                is_clicked = power_slot.button(
                     f"{title}의 소비전력 확인",
                     key=f"step2_select_{product}",
                     use_container_width=True,
-                ):
+                )
+                if is_clicked:
+                    revealed_set.add(product)
                     if product not in st.session_state.kettle_power_revealed:
                         st.session_state.kettle_power_revealed.append(product)
-                    st.rerun()
+                    power_slot.info(f"소비전력: {power}W")
 
-    revealed_set = set(st.session_state.kettle_power_revealed)
+    step2_completed = len(revealed_set) == 3
 
-    if len(revealed_set) == 3:
+    if step2_completed:
         st.markdown("##### 성능 및 소비전력 정리 표")
 
         performance_labels = {"A": "-", "B": "-", "C": "-"}
@@ -699,41 +771,49 @@ if st.session_state.kettle_performance_relation_submitted:
                     performance_labels["B"],
                     performance_labels["C"],
                 ],
-                "소비전력": ["1800W", "1400W", "900W"],
+                "소비전력": ["1800W", "1400W", "1300W"],
             },
             index=["A", "B", "C"],
         )
         st.dataframe(summary_df, use_container_width=True)
+else:
+    step2_completed = False
 
-st.markdown("#### 📊 Step 3: 어떤 제품을 사면 좋을까?")
+if step2_completed:
+    st.markdown("#### 📊 Step 3: 어떤 제품을 사면 좋을까?")
 
-if "kettle_choice_submitted" not in st.session_state:
-    st.session_state.kettle_choice_submitted = False
+    if "kettle_choice_submitted" not in st.session_state:
+        st.session_state.kettle_choice_submitted = False
 
-if "kettle_choice_feedback_type" not in st.session_state:
-    st.session_state.kettle_choice_feedback_type = ""
+    if "kettle_choice_feedback_type" not in st.session_state:
+        st.session_state.kettle_choice_feedback_type = ""
 
-if "kettle_choice_feedback_message" not in st.session_state:
-    st.session_state.kettle_choice_feedback_message = ""
+    if "kettle_choice_feedback_message" not in st.session_state:
+        st.session_state.kettle_choice_feedback_message = ""
 
-choice_col, submit_col, feedback_col = st.columns([1.7, 0.9, 2.4])
+    with st.form("kettle_choice_form"):
+        choice_col, submit_col, feedback_col = st.columns([1.7, 0.9, 2.4])
 
-with choice_col:
-    selected_kettle = st.radio(
-        "고심이에게 가장 적합한 제품은?",
-        ["A", "B", "C"],
-        index=["A", "B", "C"].index(st.session_state.kettle_choice),
-        key="kettle_choice_radio",
-        horizontal=True,
-    )
-    st.session_state.kettle_choice = selected_kettle
+        with choice_col:
+            selected_kettle = st.radio(
+                "고심이에게 가장 적합한 제품은?",
+                ["A", "B", "C"],
+                index=["A", "B", "C"].index(st.session_state.kettle_choice),
+                key="kettle_choice_radio",
+                horizontal=True,
+            )
 
-with submit_col:
-    if st.button(
-        "✅ 입력 완료",
-        key="kettle_choice_submit",
-        use_container_width=False,
-    ):
+        with submit_col:
+            choice_submitted = st.form_submit_button(
+                "✅ 입력 완료",
+                use_container_width=False,
+            )
+
+        with feedback_col:
+            st.empty()
+
+    if choice_submitted:
+        st.session_state.kettle_choice = selected_kettle
         st.session_state.kettle_choice_submitted = True
         if selected_kettle == "C":
             st.session_state.kettle_choice_feedback_type = "success"
@@ -749,127 +829,139 @@ with submit_col:
                 "B가 정말 최선일까요?!?! 다시 생각해봅시다."
             )
 
-with feedback_col:
-    if st.session_state.kettle_choice_submitted:
-        if st.session_state.kettle_choice_feedback_type == "success":
-            st.success(st.session_state.kettle_choice_feedback_message)
-        elif st.session_state.kettle_choice_feedback_type == "warning":
-            st.warning(st.session_state.kettle_choice_feedback_message)
+    choice_col, submit_col, feedback_col = st.columns([1.7, 0.9, 2.4])
+    with feedback_col:
+        if st.session_state.kettle_choice_submitted:
+            if st.session_state.kettle_choice_feedback_type == "success":
+                st.success(st.session_state.kettle_choice_feedback_message)
+            elif st.session_state.kettle_choice_feedback_type == "warning":
+                st.warning(st.session_state.kettle_choice_feedback_message)
+            else:
+                st.info(st.session_state.kettle_choice_feedback_message)
+
+    step3_completed = (
+        st.session_state.kettle_choice_submitted
+        and st.session_state.kettle_choice_feedback_type == "success"
+    )
+else:
+    step3_completed = False
+    st.info("Step 2에서 성능 및 소비전력 정리 표를 확인하면 Step 3가 열립니다.")
+
+if step3_completed:
+    st.markdown("#### [정리] 오늘 수업 내용 요약하기")
+
+    qa_cols = [0.4, 4.2, 0.5, 1.3]
+
+    q1_col1, q1_col2, q1_col3, q1_col4 = st.columns(qa_cols, gap="small")
+    with q1_col1:
+        st.markdown("<p style='margin-top: 0.55rem;'>1.</p>", unsafe_allow_html=True)
+    with q1_col2:
+        st.markdown(
+            "<p style='margin-top: 0.55rem;'>1초 동안 사용하는 전기 에너지의 양은?</p>",
+            unsafe_allow_html=True,
+        )
+    with q1_col3:
+        st.markdown(
+            "<p style='margin-top: 0.55rem; text-align:right;'>답:</p>",
+            unsafe_allow_html=True,
+        )
+    with q1_col4:
+        lesson1_blank = st.text_input(
+            "1번 빈칸",
+            value=st.session_state.get("kettle_lesson1_blank", ""),
+            key="kettle_lesson1_blank_input",
+            label_visibility="collapsed",
+        )
+        st.session_state.kettle_lesson1_blank = lesson1_blank
+
+    q2_col1, q2_col2, q2_col3, q2_col4 = st.columns(qa_cols, gap="small")
+    with q2_col1:
+        st.markdown("<p style='margin-top: 0.55rem;'>2.</p>", unsafe_allow_html=True)
+    with q2_col2:
+        st.markdown(
+            "<p style='margin-top: 0.55rem;'>소비 전력이 큰 전기 기구는 전기 에너지를 주로 어떤 에너지로 전환하여 사용하는가?</p>",
+            unsafe_allow_html=True,
+        )
+    with q2_col3:
+        st.markdown(
+            "<p style='margin-top: 0.55rem; text-align:right;'>답:</p>",
+            unsafe_allow_html=True,
+        )
+    with q2_col4:
+        lesson2_blank = st.text_input(
+            "2번 빈칸",
+            value=st.session_state.get("kettle_lesson2_blank", ""),
+            key="kettle_lesson2_blank_input",
+            label_visibility="collapsed",
+        )
+        st.session_state.kettle_lesson2_blank = lesson2_blank
+
+    q3_col1, q3_col2, q3_col3, q3_col4, q3_col5, q3_col6 = st.columns(
+        [0.4, 1.8, 1.0, 0.3, 0.8, 2.5], gap="small"
+    )
+    with q3_col1:
+        st.markdown("<p style='margin-top: 0.55rem;'>3.</p>", unsafe_allow_html=True)
+    with q3_col2:
+        st.markdown(
+            "<p style='margin-top: 0.55rem;'>성능이 동일하다면</p>",
+            unsafe_allow_html=True,
+        )
+    with q3_col3:
+        lesson3_blank_one = st.text_input(
+            "3번 첫 빈칸",
+            value=st.session_state.get("kettle_lesson3_blank_one", ""),
+            key="kettle_lesson3_blank_one_input",
+            label_visibility="collapsed",
+        )
+        st.session_state.kettle_lesson3_blank_one = lesson3_blank_one
+    with q3_col4:
+        st.markdown(
+            "<p style='margin-top: 0.55rem; text-align:center;'>이</p>",
+            unsafe_allow_html=True,
+        )
+    with q3_col5:
+        lesson3_blank_two = st.text_input(
+            "3번 둘째 빈칸",
+            value=st.session_state.get("kettle_lesson3_blank_two", ""),
+            key="kettle_lesson3_blank_two_input",
+            label_visibility="collapsed",
+        )
+        st.session_state.kettle_lesson3_blank_two = lesson3_blank_two
+    with q3_col6:
+        st.markdown(
+            "<p style='margin-top: 0.55rem;'>제품을 사용하는 것이 더 효율적이다.</p>",
+            unsafe_allow_html=True,
+        )
+
+    if st.button(
+        "✅ 정답 확인",
+        key="kettle_lesson_check_submit",
+        use_container_width=False,
+    ):
+        # 띄어쓰기 제거 후 유연한 정답 판정
+        q1_ans = lesson1_blank.replace(" ", "")
+        q2_ans = lesson2_blank.replace(" ", "")
+        q3_ans1 = lesson3_blank_one.replace(" ", "")
+        q3_ans2 = lesson3_blank_two.replace(" ", "")
+
+        q1_correct = q1_ans in ["소비전력"]
+        q2_correct = q2_ans in ["열", "열에너지"]
+        q3_correct = (q3_ans1 in ["소비전력"]) and (
+            q3_ans2 in ["작은", "적은", "낮은"]
+        )
+
+        if q1_correct and q2_correct and q3_correct:
+            st.success("🎉 축하합니다! 모든 빈칸을 정확하게 채웠습니다! 학습지를 pdf로 저장하여 제출하세요.")
+            st.balloons()
         else:
-            st.info(st.session_state.kettle_choice_feedback_message)
-
-st.markdown("#### [정리] 오늘 수업 내용 요약하기")
-
-qa_cols = [0.4, 4.2, 0.5, 1.3]
-
-q1_col1, q1_col2, q1_col3, q1_col4 = st.columns(qa_cols, gap="small")
-with q1_col1:
-    st.markdown("<p style='margin-top: 0.55rem;'>1.</p>", unsafe_allow_html=True)
-with q1_col2:
-    st.markdown(
-        "<p style='margin-top: 0.55rem;'>1초 동안 사용하는 전기 에너지의 양은?</p>",
-        unsafe_allow_html=True,
-    )
-with q1_col3:
-    st.markdown(
-        "<p style='margin-top: 0.55rem; text-align:right;'>답:</p>",
-        unsafe_allow_html=True,
-    )
-with q1_col4:
-    lesson1_blank = st.text_input(
-        "1번 빈칸",
-        value=st.session_state.get("kettle_lesson1_blank", ""),
-        key="kettle_lesson1_blank_input",
-        label_visibility="collapsed",
-    )
-    st.session_state.kettle_lesson1_blank = lesson1_blank
-
-q2_col1, q2_col2, q2_col3, q2_col4 = st.columns(qa_cols, gap="small")
-with q2_col1:
-    st.markdown("<p style='margin-top: 0.55rem;'>2.</p>", unsafe_allow_html=True)
-with q2_col2:
-    st.markdown(
-        "<p style='margin-top: 0.55rem;'>소비 전력이 큰 전기 기구는 전기 에너지를 주로 어떤 에너지로 전환하여 사용하는가?</p>",
-        unsafe_allow_html=True,
-    )
-with q2_col3:
-    st.markdown(
-        "<p style='margin-top: 0.55rem; text-align:right;'>답:</p>",
-        unsafe_allow_html=True,
-    )
-with q2_col4:
-    lesson2_blank = st.text_input(
-        "2번 빈칸",
-        value=st.session_state.get("kettle_lesson2_blank", ""),
-        key="kettle_lesson2_blank_input",
-        label_visibility="collapsed",
-    )
-    st.session_state.kettle_lesson2_blank = lesson2_blank
-
-q3_col1, q3_col2, q3_col3, q3_col4, q3_col5, q3_col6 = st.columns(
-    [0.4, 1.8, 1.0, 0.3, 0.8, 2.5], gap="small"
-)
-with q3_col1:
-    st.markdown("<p style='margin-top: 0.55rem;'>3.</p>", unsafe_allow_html=True)
-with q3_col2:
-    st.markdown(
-        "<p style='margin-top: 0.55rem;'>성능이 동일하다면</p>",
-        unsafe_allow_html=True,
-    )
-with q3_col3:
-    lesson3_blank_one = st.text_input(
-        "3번 첫 빈칸",
-        value=st.session_state.get("kettle_lesson3_blank_one", ""),
-        key="kettle_lesson3_blank_one_input",
-        label_visibility="collapsed",
-    )
-    st.session_state.kettle_lesson3_blank_one = lesson3_blank_one
-with q3_col4:
-    st.markdown(
-        "<p style='margin-top: 0.55rem; text-align:center;'>이</p>",
-        unsafe_allow_html=True,
-    )
-with q3_col5:
-    lesson3_blank_two = st.text_input(
-        "3번 둘째 빈칸",
-        value=st.session_state.get("kettle_lesson3_blank_two", ""),
-        key="kettle_lesson3_blank_two_input",
-        label_visibility="collapsed",
-    )
-    st.session_state.kettle_lesson3_blank_two = lesson3_blank_two
-with q3_col6:
-    st.markdown(
-        "<p style='margin-top: 0.55rem;'>제품을 사용하는 것이 더 효율적이다.</p>",
-        unsafe_allow_html=True,
-    )
-
-if st.button(
-    "✅ 정답 확인",
-    key="kettle_lesson_check_submit",
-    use_container_width=False,
-):
-    # 띄어쓰기 제거 후 유연한 정답 판정
-    q1_ans = lesson1_blank.replace(" ", "")
-    q2_ans = lesson2_blank.replace(" ", "")
-    q3_ans1 = lesson3_blank_one.replace(" ", "")
-    q3_ans2 = lesson3_blank_two.replace(" ", "")
-
-    q1_correct = q1_ans in ["소비전력"]
-    q2_correct = q2_ans in ["열", "열에너지"]
-    q3_correct = (q3_ans1 in ["소비전력"]) and (
-        q3_ans2 in ["작은", "적은", "낮은"]
-    )
-
-    if q1_correct and q2_correct and q3_correct:
-        st.success("🎉 축하합니다! 모든 빈칸을 정확하게 채웠습니다! 학습지를 pdf로 저장하여 제출하세요.")
-        st.balloons()
-    else:
-        st.warning("⚠️ 틀린 부분이 있습니다. 다시 확인해보세요!")
-        if not q1_correct:
-            st.info("1번 문제를 다시 확인해보세요.")
-        if not q2_correct:
-            st.info("2번 문제를 다시 확인해보세요.")
-        if not q3_correct:
-            st.info("3번 문제를 다시 확인해보세요.")
+            st.warning("⚠️ 틀린 부분이 있습니다. 다시 확인해보세요!")
+            if not q1_correct:
+                st.info("1번 문제를 다시 확인해보세요.")
+            if not q2_correct:
+                st.info("2번 문제를 다시 확인해보세요.")
+            if not q3_correct:
+                st.info("3번 문제를 다시 확인해보세요.")
+elif step2_completed:
+    st.info("Step 3에서 정답을 선택해 입력 완료를 누르면 정리 문제가 열립니다.")
 
 st.markdown("---")
