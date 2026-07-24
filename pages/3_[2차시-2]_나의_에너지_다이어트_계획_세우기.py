@@ -2,6 +2,72 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from io import BytesIO
+from datetime import datetime
+from pathlib import Path
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+
+
+def _register_korean_font() -> str:
+    """PDF에 한글이 깨지지 않도록 폰트를 등록하고 폰트명을 반환한다."""
+    font_name = "NotoSansKR"
+    if font_name not in pdfmetrics.getRegisteredFontNames():
+        font_path = Path(__file__).resolve().parents[1] / "fonts" / "NotoSansKR-Regular.ttf"
+        pdfmetrics.registerFont(TTFont(font_name, str(font_path)))
+    return font_name
+
+
+def _build_report_pdf(report: dict) -> bytes:
+    """현재 시뮬레이션 결과를 PDF 바이트로 생성한다."""
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, title="에너지 다이어트 학습지")
+    font_name = _register_korean_font()
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        "KTitle",
+        parent=styles["Title"],
+        fontName=font_name,
+        fontSize=18,
+        leading=24,
+    )
+    body_style = ParagraphStyle(
+        "KBody",
+        parent=styles["BodyText"],
+        fontName=font_name,
+        fontSize=11,
+        leading=16,
+    )
+
+    lines = [
+        "[활동 2] 나의 에너지 다이어트 계획 세우기",
+        f"작성 일시: {report['timestamp']}",
+        "",
+        "[시뮬레이션 결과 요약]",
+        f"- 다이어트 후 탄소 배출량: {report['total_co2_after']:.1f} kgCO2",
+        f"- 탄소 감축량: {report['co2_saved']:.1f} kgCO2",
+        f"- 탄소 감축률: {report['reduction_rate']:.1f}%",
+        f"- 월간 절약 전기요금: {int(report['cost_saved']):,} 원",
+        f"- 연간 소나무 심기 효과: {report['trees_planted']:.1f} 그루",
+        "",
+        "[나의 실천 다짐]",
+        report["action_plan"].replace("\n", "<br/>") if report["action_plan"].strip() else "(미작성)",
+    ]
+
+    story = [Paragraph(lines[0], title_style), Spacer(1, 12)]
+    for text in lines[1:]:
+        if text == "":
+            story.append(Spacer(1, 8))
+        else:
+            story.append(Paragraph(text, body_style))
+
+    doc.build(story)
+    buffer.seek(0)
+    return buffer.getvalue()
 
 # -----------------------------------------------------------------------------
 # 1. 페이지 및 기본 설정
@@ -97,7 +163,7 @@ st.caption("아래 행동 미션을 슬라이더와 체크박스로 조작하며
 col_m1, col_m2 = st.columns(2)
 
 with col_m1:
-    st.markdown("##### 🔬 [미션 A & B] 온도 조절 및 습관 개선")
+    st.markdown("##### 🔬 나의 일상 습관 개선 1")
     
     # 미션 1: 에어컨 온도 높이기
     m1_ac_temp = st.slider(
@@ -116,7 +182,7 @@ with col_m1:
     )
 
 with col_m2:
-    st.markdown("##### 🔬 [미션 C & D] 시간 단축 및 대기전력 차단")
+    st.markdown("##### 🔬 나의 일상 습관 개선 2")
     
     # 미션 3: PC/TV 사용 시간 줄이기
     m3_pc_hours = st.slider(
@@ -125,7 +191,7 @@ with col_m2:
     )
     
     # 미션 4: 대기전력 차단 멀티탭 끄기
-    m4_cut_standby = st.checkbox("✅ [미션 4] 자는 동안 대기전력 차단 멀티탭 전원 끄기", value=True)
+    m4_cut_standby = st.checkbox("✅ [미션 4] 자는 동안 대기전력 차단 멀티탭 전원 끄기", value=False)
 
 # -----------------------------------------------------------------------------
 # 5. [과학적 연산 로직] After 상태 연산
@@ -223,3 +289,25 @@ action_plan = st.text_area(
     placeholder=f"예: 시뮬레이션을 돌려보니 에어컨 온도를 26도로 높이고 자는 동안 셋톱박스 플러그를 뽑는 것만으로도 월간 탄소를 {co2_saved:.1f}kg이나 줄일 수 있음을 알게 되었습니다. 오늘부터...",
     label_visibility="collapsed",
 )
+
+st.markdown("---")
+
+if "report_pdf" not in st.session_state:
+    st.session_state["report_pdf"] = None
+
+if st.button("✅ 다짐 완료", type="primary", use_container_width=True):
+    if not action_plan.strip():
+        st.warning("다짐문을 먼저 작성한 뒤 완료 버튼을 눌러주세요.")
+    else:
+        report_data = {
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "total_co2_after": total_co2_after,
+            "co2_saved": co2_saved,
+            "reduction_rate": reduction_rate,
+            "cost_saved": cost_saved,
+            "trees_planted": trees_planted,
+            "action_plan": action_plan,
+        }
+        st.session_state["report_pdf"] = _build_report_pdf(report_data)
+        st.success("작성이 완료되었습니다. 학습지를 PDF로 저장하여 제출하세요.")
+        st.balloons()

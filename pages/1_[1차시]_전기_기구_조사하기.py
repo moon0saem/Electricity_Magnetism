@@ -367,7 +367,7 @@ def build_kettle_scatter_fig(records):
         x="용량(L)",
         y="소비전력(W)",
         hover_name="제품" if "제품" in df.columns else None,
-        title="<b>용량(L)에 따른 소비전력(W) 산점도</b>",
+        title="<b>용량(L)에 따른 소비전력(W) 그래프</b>",
         color_discrete_sequence=["#EF4444"],
         size_max=10,
     )
@@ -951,7 +951,7 @@ if step3_completed:
         )
 
         if q1_correct and q2_correct and q3_correct:
-            st.success("🎉 축하합니다! 모든 빈칸을 정확하게 채웠습니다! 학습지를 pdf로 저장하여 제출하세요.")
+            st.success("🎉 모든 빈칸을 정확하게 채웠습니다! 학습지를 pdf로 저장하여 제출하세요.")
             st.balloons()
         else:
             st.warning("⚠️ 틀린 부분이 있습니다. 다시 확인해보세요!")
