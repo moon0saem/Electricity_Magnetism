@@ -201,7 +201,8 @@ ref_kwh_after = ((ref_wh_base * 24 * 30) + (wh_per_open * m2_door_open * 30)) / 
 
 # 에어컨 After (온도차 비례 소비전력 감축 적용)
 dT_ac_after = max(1, outdoor_temp - m1_ac_temp)
-ac_power_after = ac_power_base * (dT_ac_after / dT_ac_before)
+ac_power_factor = max(0.5, 1.0 - (m1_ac_temp - ac_temp_before) * 0.07)
+ac_power_after = ac_power_base * ac_power_factor
 ac_kwh_after = (ac_power_after * m1_ac_hours * 30) / 1000.0
 
 # PC 및 드라이어 After
