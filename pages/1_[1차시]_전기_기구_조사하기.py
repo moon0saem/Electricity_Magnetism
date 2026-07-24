@@ -6,9 +6,9 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 # 페이지 설정
-st.set_page_config(page_title="[1차시] 전기 기구 조사하기", layout="wide")
+st.set_page_config(page_title="[1차시] 전기 기구 탐색하기", layout="wide")
 
-st.title("⚡ 1차시: 전기 기구 조사하기")
+st.title("⚡ 1차시: 전기 기구 탐색하기")
 
 # 활동 목표
 st.markdown("""
